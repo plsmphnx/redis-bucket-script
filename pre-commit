@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+const { execSync } = require('child_process');
+const { createHash } = require('crypto');
+const { readFileSync, writeFileSync } = require('fs');
+
+execSync('npm install --no-save luamin');
+const { minify } = require('luamin');
+
+const luafile = 'bucket.lua';
+const minfile = 'bucket.min.lua';
+
+// Generate minified Lua script
+const lua = readFileSync(luafile, 'utf8');
+const min = minify(lua);
+writeFileSync(minfile, min);
+
+// Generate SHA1 hashes for evalsha
+const hash = (file, body) =>
+    writeFileSync(
+        file + '.sha1',
+        createHash('sha1').update(body, 'utf8').digest('hex')
+    );
+
+hash(luafile, lua);
+hash(minfile, min);
+
+execSync('git add bucket.*');
